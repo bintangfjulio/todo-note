@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Note;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class NoteController extends Controller
 {
@@ -14,7 +13,16 @@ class NoteController extends Controller
             ->orderBy('order', 'asc')
             ->paginate(10);
 
-        return view('index', compact('notes'));
+        return view('index', compact('notes'), ['title' => 'To Do']);
+    }
+
+    public function complete()
+    {
+        $notes = Note::where('is_done', true)
+            ->orderBy('completed_at', 'desc')
+            ->paginate(10);
+
+        return view('index', compact('notes'), ['title' => 'Completed']);
     }
 
     public function store(Request $request)
@@ -94,12 +102,27 @@ class NoteController extends Controller
         return response()->json(['message' => 'Note deleted successfully!'], 200);
     }
 
-    public function complete()
+    public function done(string $id)
     {
-        $notes = Note::where('is_done', true)
-            ->orderBy('completed_at', 'desc')
-            ->paginate(10);
+        $note = Note::findOrFail($id);
 
-        return view('complete', compact('notes'));
+        $note->update([
+            'is_done' => true,
+            'completed_at' => now(),
+        ]);
+
+        return response()->json(['message' => 'Note done successfully!'], 200);
+    }
+
+    public function undone(string $id)
+    {
+        $note = Note::findOrFail($id);
+
+        $note->update([
+            'is_done' => false,
+            'completed_at' => null,
+        ]);
+
+        return response()->json(['message' => 'Note undone successfully!'], 200);
     }
 }

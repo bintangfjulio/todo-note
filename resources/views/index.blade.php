@@ -9,11 +9,13 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                 <div class="flex justify-between mb-5">
-                    <h1 class="font-bold">To Do List</h1>
-                    <button class="btn btn-warning btn-sm" onclick="todo.showModal()">
-                        Add To Do
-                        <i class="fa-solid fa-plus"></i>
-                    </button>
+                    <h1 class="font-bold">{{ $title }} List</h1>
+                    @if ($title == 'To Do')
+                        <button class="btn btn-warning btn-sm" onclick="todo.showModal()">
+                            Add To Do
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    @endif
                 </div>
 
                 <div class="overflow-x-auto">
@@ -23,9 +25,15 @@
                                 <th>No</th>
                                 <th>Title</th>
                                 <th>Scheduled At</th>
+
                                 <th>Created At</th>
+
+                                @if ($title == 'Completed')
+                                    <th>Completed At</th>
+                                @endif
+
                                 <th>Status</th>
-                                <th>Aksi</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -35,12 +43,21 @@
                                     <td class="text-start">{{ $note->title }}</td>
                                     <td>{{ $note->scheduled_at ? Carbon::parse($note->scheduled_at)->translatedFormat('d F Y H:i') : '-' }}
                                     </td>
+
                                     <td>{{ Carbon::parse($note->created_at)->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }}
                                     </td>
+
+                                    @if ($title == 'Completed')
+                                        <td>{{ Carbon::parse($note->completed_at)->setTimezone('Asia/Jakarta')->translatedFormat('d F Y H:i') }}
+                                        </td>
+                                    @endif
+
                                     <td>
-                                        <div class="badge badge-error">{{ $note->is_done ? 'Completed' : 'Not Completed' }}
+                                        <div class="badge badge-{{ $note->is_done ? 'success' : 'error' }}">
+                                            {{ $note->is_done ? 'Completed' : 'Uncompleted' }}
                                         </div>
                                     </td>
+
                                     <td>
                                         <div class="flex justify-center items-center space-x-2">
                                             <i class="fas fa-eye text-black"
@@ -49,6 +66,13 @@
                                                 onclick='viewData(@json($note), "edit")'></i>
                                             <i class="fas fa-trash text-black"
                                                 onclick="deleteData({{ $note->id }})"></i>
+                                            @if ($title == 'To Do')
+                                                <button onclick="doneData({{ $note->id }})"
+                                                    class="btn btn-xs btn-success">Done</button>
+                                            @else
+                                                <button onclick="undoneData({{ $note->id }})"
+                                                    class="btn btn-xs btn-error">Undone</button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -317,8 +341,8 @@
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
+                confirmButtonText: 'Yes, delete!',
+                cancelButtonText: 'Cancel'
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
@@ -331,6 +355,88 @@
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Delete Success',
+                                text: response.message,
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Server Error',
+                                text: 'Try Again',
+                                confirmButtonText: 'OK'
+                            })
+                        }
+                    });
+                }
+            });
+        }
+
+        function doneData(id) {
+            Swal.fire({
+                title: 'Are you sure to done it?',
+                text: "You still able to revert this",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, done!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/done/' + id,
+                        type: 'PUT',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Done Success',
+                                text: response.message,
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Server Error',
+                                text: 'Try Again',
+                                confirmButtonText: 'OK'
+                            })
+                        }
+                    });
+                }
+            });
+        }
+
+        function undoneData(id) {
+            Swal.fire({
+                title: 'Are you sure to undone it?',
+                text: "You still able to revert this",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, undone!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/undone/' + id,
+                        type: 'PUT',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Done Success',
                                 text: response.message,
                                 confirmButtonText: 'OK'
                             }).then(() => {

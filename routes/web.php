@@ -8,6 +8,9 @@ Route::post('/', [NoteController::class, 'store']);
 Route::post('/{id}', [NoteController::class, 'update']);
 Route::delete('/{id}', [NoteController::class, 'destroy']);
 
+Route::put('/done/{id}', [NoteController::class, 'done']);
+Route::put('/undone/{id}', [NoteController::class, 'undone']);
+
 Route::get('/complete', [NoteController::class, 'complete'])->name('complete');
 
 // Route::get('/dashboard', function () {
