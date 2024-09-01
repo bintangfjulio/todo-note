@@ -10,6 +10,8 @@ Route::delete('/{id}', [NoteController::class, 'destroy']);
 
 Route::put('/done/{id}', [NoteController::class, 'done']);
 Route::put('/undone/{id}', [NoteController::class, 'undone']);
+Route::put('/update-order', [NoteController::class, 'updateOrder']);
+
 
 Route::get('/complete', [NoteController::class, 'complete'])->name('complete');
 

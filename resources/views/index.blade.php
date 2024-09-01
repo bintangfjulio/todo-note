@@ -36,9 +36,9 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="sortable">
                             @foreach ($notes as $note)
-                                <tr class="hover">
+                                <tr class="hover" data-id="{{ $note->id }}">
                                     <th>{{ $loop->index + 1 }}</th>
                                     <td class="text-start">{{ $note->title }}</td>
                                     <td>{{ $note->scheduled_at ? Carbon::parse($note->scheduled_at)->translatedFormat('d F Y H:i') : '-' }}
@@ -53,9 +53,7 @@
                                     @endif
 
                                     <td>
-                                        <div class="badge badge-{{ $note->is_done ? 'success' : 'error' }}">
-                                            {{ $note->is_done ? 'Completed' : 'Uncompleted' }}
-                                        </div>
+                                        {{ $note->is_done ? 'Completed' : 'Uncompleted' }}
                                     </td>
 
                                     <td>
@@ -141,7 +139,18 @@
 @endsection
 
 @section('js')
-    <script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#sortable').sortable({
+                update: function(event, ui) {
+                    let order = $(this).sortable('toArray', {
+                        attribute: 'data-id'
+                    });
+                    updateOrder(order);
+                }
+            });
+        });
+
         function resetModal() {
             $('#todo').get(0).close();
             $('input').val('')
@@ -451,6 +460,36 @@
                                 confirmButtonText: 'OK'
                             })
                         }
+                    });
+                }
+            });
+        }
+
+        function updateOrder(order) {
+            $.ajax({
+                url: '/update-order/',
+                method: 'PUT',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    order: order,
+                },
+                success: function(response) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Order Updated',
+                        text: response.message,
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        location.reload();
+                    })
+                },
+                error: function(xhr) {
+                    console.log(xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Server Error',
+                        text: 'Try Again',
+                        confirmButtonText: 'OK'
                     });
                 }
             });

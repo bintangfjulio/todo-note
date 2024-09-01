@@ -125,4 +125,19 @@ class NoteController extends Controller
 
         return response()->json(['message' => 'Note undone successfully!'], 200);
     }
+
+    public function updateOrder(Request $request)
+    {
+        $order = $request->order;
+
+        foreach ($order as $index => $id) {
+            $note = Note::findOrFail($id);
+
+            $note->update([
+                'order' => $index + 1,
+            ]);
+        }
+
+        return response()->json(['message' => 'Order updated successfully.']);
+    }
 }
